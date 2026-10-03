@@ -1,0 +1,248 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =====================================================================
+   THEME TOKENS
+   Colors are stored as space-separated RGB channels so Tailwind can apply
+   opacity (bg-cyan/20). Dark is the default; light is set with
+   <html data-theme="light"> (see ThemeProvider).
+   ===================================================================== */
+:root,
+:root[data-theme="dark"] {
+  --c-bg: 5 6 15;
+  --c-surface: 11 14 31;
+  --c-surface2: 18 22 44;
+  --c-line: 31 37 71;
+  --c-cyan: 0 240 255;
+  --c-magenta: 255 43 214;
+  --c-violet: 122 92 255;
+  --c-shopify: 149 191 71;
+  --c-ink: 232 236 255;
+  --c-muted: 138 147 184;
+  --c-success: 43 255 154;
+  --c-danger: 255 77 109;
+
+  --glow-a: 0.6;
+  --shadow-cyan: 0 0 0 1px rgb(0 240 255), 0 0 24px rgb(0 240 255 / 0.35);
+  --shadow-magenta: 0 0 0 1px rgb(255 43 214), 0 0 24px rgb(255 43 214 / 0.35);
+  --shadow-soft: 0 0 40px rgb(0 240 255 / 0.12);
+  --grid-line: rgb(255 255 255 / 0.03);
+  --orb-o: 1;
+  --noise-o: 0.03;
+  color-scheme: dark;
+}
+
+/* Light theme: darker, saturated accents so every text color keeps AA contrast on white */
+:root[data-theme="light"] {
+  --c-bg: 244 246 255;
+  --c-surface: 255 255 255;
+  --c-surface2: 237 241 252;
+  --c-line: 203 211 234;
+  --c-cyan: 14 116 144;
+  --c-magenta: 162 28 175;
+  --c-violet: 109 40 217;
+  --c-shopify: 77 124 15;
+  --c-ink: 11 16 32;
+  --c-muted: 74 85 120;
+  --c-success: 4 120 87;
+  --c-danger: 190 18 60;
+
+  --glow-a: 0;
+  --shadow-cyan: 0 0 0 1px rgb(14 116 144), 0 8px 24px -8px rgb(14 116 144 / 0.4);
+  --shadow-magenta: 0 0 0 1px rgb(162 28 175), 0 8px 24px -8px rgb(162 28 175 / 0.4);
+  --shadow-soft: 0 12px 32px -12px rgb(30 41 90 / 0.22);
+  --grid-line: rgb(15 23 60 / 0.06);
+  --orb-o: 0.5;
+  --noise-o: 0.025;
+  color-scheme: light;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5rem;
+    background: rgb(var(--c-bg));
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-bg font-body text-ink antialiased;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  img,
+  svg,
+  video,
+  iframe {
+    max-width: 100%;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-heading;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  h1 {
+    font-size: clamp(2.25rem, 6vw, 5rem);
+    font-weight: 700;
+  }
+  h2 {
+    font-size: clamp(1.85rem, 4vw, 3rem);
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+  }
+
+  ::selection {
+    background: rgb(var(--c-cyan) / 0.3);
+    color: rgb(var(--c-ink));
+  }
+
+  :focus-visible {
+    outline: 2px solid rgb(var(--c-cyan));
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+}
+
+@layer components {
+  /* ---------- Neon text (glow is off in light theme via --glow-a) ---------- */
+  .text-glow-cyan {
+    text-shadow:
+      0 0 12px rgb(var(--c-cyan) / var(--glow-a)),
+      0 0 32px rgb(var(--c-cyan) / calc(var(--glow-a) * 0.4));
+  }
+  .text-glow-magenta {
+    text-shadow:
+      0 0 12px rgb(var(--c-magenta) / var(--glow-a)),
+      0 0 32px rgb(var(--c-magenta) / calc(var(--glow-a) * 0.4));
+  }
+  .gradient-text {
+    background-image: linear-gradient(
+      90deg,
+      rgb(var(--c-cyan)) 0%,
+      rgb(var(--c-violet)) 50%,
+      rgb(var(--c-magenta)) 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+
+  /* ---------- 1px gradient border ---------- */
+  .gradient-border {
+    position: relative;
+  }
+  .gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      90deg,
+      rgb(var(--c-cyan)),
+      rgb(var(--c-violet)),
+      rgb(var(--c-magenta))
+    );
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  /* ---------- Page background ---------- */
+  .bg-grid {
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size: 48px 48px;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 80%);
+    mask-image: radial-gradient(ellipse at 50% 30%, #000 30%, transparent 80%);
+  }
+
+  .noise {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+    opacity: var(--noise-o);
+    mix-blend-mode: overlay;
+  }
+
+  .neon-orb {
+    opacity: var(--orb-o);
+  }
+}
+
+/* Smooth color change for a moment when the theme is toggled */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition:
+    background-color 0.3s ease,
+    color 0.3s ease,
+    border-color 0.3s ease,
+    fill 0.3s ease,
+    stroke 0.3s ease !important;
+}
+
+/* ---------- Reduced glow & motion (toggle + OS setting) ---------- */
+html[data-reduced="true"] .text-glow-cyan,
+html[data-reduced="true"] .text-glow-magenta {
+  text-shadow: none;
+}
+html[data-reduced="true"] .noise,
+html[data-reduced="true"] .neon-orb {
+  display: none;
+}
+html[data-reduced="true"] *,
+html[data-reduced="true"] *::before,
+html[data-reduced="true"] *::after {
+  animation: none !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+  .text-glow-cyan,
+  .text-glow-magenta {
+    text-shadow: none;
+  }
+}
+
+/* ---------- Marquee fallback: static wrapped list when motion is reduced ---------- */
+html[data-reduced="true"] .marquee-track {
+  width: auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+html[data-reduced="true"] .marquee-dup {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .marquee-track {
+    width: auto;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .marquee-dup {
+    display: none;
+  }
+}
