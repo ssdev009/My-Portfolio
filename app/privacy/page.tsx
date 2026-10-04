@@ -35,7 +35,7 @@ export default function PrivacyPage() {
         If you use the contact form, I receive your name, email address, store or website (optional),
         the service you are interested in, your budget range and your message. I use this only to reply
         to your enquiry and to discuss the project. Form messages are delivered to me by email through
-        the Resend email service. If you contact me on WhatsApp or by email directly, those services
+        EmailJS. If you contact me on WhatsApp or by email directly, those services
         process your message under their own policies.
       </p>
 

@@ -71,7 +71,7 @@ The Testimonials section appears automatically once there is at least one.
 
 ### Change the company name
 1. `brandName` in `data/site.config.ts` (updates the navbar, footer, emails, share image, page titles, privacy page).
-2. Optional: replace the logo mark. The logo is drawn in `components/ui/Logo.tsx`. The browser tab icon is `app/icon.svg`.
+2. Optional: replace the logo mark. The logo is drawn in `components/ui/Logo.tsx`. The browser tab icon is `app/icon.jpg`.
 3. Update `tagline` and `hero` text in the same config file if needed.
 4. Commit and push.
 
@@ -115,7 +115,7 @@ Sections are listed in order in `app/page.tsx`. Delete or move a line. Remember 
 |---|---|---|
 | GitHub | code | repository |
 | Vercel | hosting + deployments | vercel.com |
-| Resend | contact form emails | resend.com |
+| EmailJS | contact form emails | emailjs.com |
 | Plausible (optional) | visitor statistics | plausible.io |
 | Google Search Console | search performance | search.google.com/search-console |
 | Domain registrar | domain name and DNS | your registrar |

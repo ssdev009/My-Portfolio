@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { services } from "@/data/services";
 import { siteConfig } from "@/data/site.config";
-import { buildAutoReply, buildOwnerEmail, sendEmail } from "@/lib/email";
+import { buildOwnerEmail, sendEmail } from "@/lib/email";
 import { rateLimit } from "@/lib/rateLimit";
 import { contactSchema, engagementOptions } from "@/lib/validators";
 
@@ -53,30 +53,30 @@ export async function POST(req: Request) {
       engagementOptions.find((e) => e.value === data.engagement)?.label ?? "Not specified",
   };
 
-  // 5) Local dev without an API key: log instead of sending
-  if (!process.env.RESEND_API_KEY) {
+  // 5) Local dev without EmailJS configuration: accept the form without sending
+  const emailJsConfigured = [
+    process.env.EMAILJS_SERVICE_ID,
+    process.env.EMAILJS_TEMPLATE_ID,
+    process.env.EMAILJS_PUBLIC_KEY,
+    process.env.EMAILJS_PRIVATE_KEY,
+  ].every(Boolean);
+  if (!emailJsConfigured) {
     if (process.env.NODE_ENV !== "production") {
-      console.log("[contact] RESEND_API_KEY missing, logging submission instead:", { ...data, ...labels });
+      console.info("[contact] EmailJS is not configured; skipping email delivery in development.");
       return NextResponse.json({ ok: true, dev: true });
     }
-    console.error("[contact] RESEND_API_KEY is not configured");
+    console.error("[contact] EmailJS service, template, public, or private key is not configured");
     return fail("Messages are temporarily unavailable. Please use WhatsApp or email instead.", 500);
   }
 
-  // 6) Send to the owner (must succeed), then auto-reply (best effort)
-  const owner = process.env.CONTACT_TO_EMAIL ?? siteConfig.email;
+  // 6) Send the inquiry to the owner
+  const owner = process.env.CONTACT_TO_EMAIL || siteConfig.email;
   try {
     const mail = buildOwnerEmail(data, labels);
-    await sendEmail({ to: owner, replyTo: data.email, ...mail });
+    await sendEmail({ to: owner, replyTo: data.email, subject: mail.subject, html: mail.html });
   } catch (err) {
-    console.error("[contact] owner email failed:", err);
+    console.error("[contact] EmailJS delivery failed:", err);
     return fail("Could not send your message. Please try WhatsApp or email instead.", 502);
-  }
-
-  try {
-    await sendEmail({ to: data.email, replyTo: owner, ...buildAutoReply(data) });
-  } catch (err) {
-    console.error("[contact] auto-reply failed (non-fatal):", err);
   }
 
   return NextResponse.json({ ok: true });

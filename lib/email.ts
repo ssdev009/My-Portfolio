@@ -14,37 +14,44 @@ interface SendArgs {
   to: string;
   subject: string;
   html: string;
-  text: string;
   replyTo?: string;
 }
 
-/** Sends one email through the Resend REST API (no SDK needed). */
-export async function sendEmail({ to, subject, html, text, replyTo }: SendArgs) {
-  const apiKey = process.env.RESEND_API_KEY;
-  if (!apiKey) throw new Error("RESEND_API_KEY is not set");
+/** Sends one email through the EmailJS REST API (no SDK needed). */
+export async function sendEmail({ to, subject, html, replyTo }: SendArgs) {
+  const serviceId = process.env.EMAILJS_SERVICE_ID;
+  const templateId = process.env.EMAILJS_TEMPLATE_ID;
+  const publicKey = process.env.EMAILJS_PUBLIC_KEY;
+  const privateKey = process.env.EMAILJS_PRIVATE_KEY;
+  if (!serviceId || !templateId || !publicKey || !privateKey) {
+    throw new Error(
+      "EmailJS service ID, template ID, public key, and private key must be configured"
+    );
+  }
 
-  const from =
-    process.env.CONTACT_FROM_EMAIL ?? `${siteConfig.brandName} <onboarding@resend.dev>`;
-
-  const res = await fetch("https://api.resend.com/emails", {
+  const res = await fetch("https://api.emailjs.com/api/v1.0/email/send", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      from,
-      to: [to],
-      subject,
-      html,
-      text,
-      ...(replyTo ? { reply_to: replyTo } : {}),
+      service_id: serviceId,
+      template_id: templateId,
+      user_id: publicKey,
+      accessToken: privateKey,
+      template_params: {
+        to_email: to,
+        subject,
+        html_content: html,
+        reply_to: replyTo ?? "",
+      },
     }),
+    signal: AbortSignal.timeout(10_000),
   });
 
   if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`Resend error ${res.status}: ${detail}`);
+    const detail = (await res.text()).replace(/[\r\n\t]+/g, " ").trim().slice(0, 500);
+    throw new Error(
+      `EmailJS request failed with status ${res.status}${detail ? `: ${detail}` : ""}`
+    );
   }
 }
 
@@ -69,8 +76,8 @@ export function buildOwnerEmail(data: ContactFormValues, labels: Labels) {
     <table style="width:100%;border-collapse:collapse">
       ${rows
         .map(
-          ([k, v]) =>
-            `<tr><td style="padding:8px 0;color:#555;width:160px">${escapeHtml(k)}</td><td style="padding:8px 0"><strong>${escapeHtml(v)}</strong></td></tr>`
+          ([key, value]) =>
+            `<tr><td style="padding:8px 0;color:#555;width:160px">${escapeHtml(key)}</td><td style="padding:8px 0"><strong>${escapeHtml(value)}</strong></td></tr>`
         )
         .join("")}
     </table>
@@ -79,26 +86,5 @@ export function buildOwnerEmail(data: ContactFormValues, labels: Labels) {
     <p style="color:#888;font-size:12px;margin-top:32px">Sent from the ${escapeHtml(siteConfig.brandName)} website contact form. Reply to this email to respond directly.</p>
   </div>`;
 
-  const text = [
-    `New inquiry from ${data.name}`,
-    ...rows.map(([k, v]) => `${k}: ${v}`),
-    "",
-    "Message:",
-    data.message,
-  ].join("\n");
-
-  return { subject: `New Shopify inquiry from ${data.name}`, html, text };
-}
-
-export function buildAutoReply(data: ContactFormValues) {
-  const first = data.name.split(" ")[0];
-  const html = `
-  <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:auto;color:#111;line-height:1.6">
-    <h2>Thanks, ${escapeHtml(first)}!</h2>
-    <p>I received your message and will reply ${escapeHtml(siteConfig.responseTime)} (working hours: ${escapeHtml(siteConfig.workingHours)}).</p>
-    <p>If it's urgent, message me on WhatsApp: <a href="https://wa.me/${escapeHtml(siteConfig.whatsapp)}">chat now</a>.</p>
-    <p>— ${escapeHtml(siteConfig.owner)}<br/>${escapeHtml(siteConfig.brandName)}</p>
-  </div>`;
-  const text = `Thanks, ${first}!\n\nI received your message and will reply ${siteConfig.responseTime} (working hours: ${siteConfig.workingHours}).\nUrgent? WhatsApp: https://wa.me/${siteConfig.whatsapp}\n\n— ${siteConfig.owner}, ${siteConfig.brandName}`;
-  return { subject: `Thanks for contacting ${siteConfig.brandName}`, html, text };
+  return { subject: `New Shopify inquiry from ${data.name}`, html };
 }

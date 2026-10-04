@@ -101,7 +101,7 @@ export function ContactForm() {
         <h3 className="mt-6 !text-2xl">Message sent!</h3>
         <p className="mt-3 max-w-sm text-muted">
           Thanks for reaching out. I&apos;ll reply {siteConfig.responseTime} (working hours:{" "}
-          {siteConfig.workingHours}). A confirmation is on its way to your inbox.
+          {siteConfig.workingHours}).
         </p>
         <div className="mt-8 flex flex-wrap justify-center gap-3">
           <Button href={whatsappLink()} variant="secondary">

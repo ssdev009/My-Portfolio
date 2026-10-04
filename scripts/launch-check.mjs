@@ -21,8 +21,16 @@ const site = env.NEXT_PUBLIC_SITE_URL ?? "";
 if (!site || site.includes("localhost")) add("BLOCKER", "NEXT_PUBLIC_SITE_URL is missing or still localhost (set your real https:// domain; used for canonical links, sitemap, social cards)");
 else if (!site.startsWith("https://")) add("WARN", `NEXT_PUBLIC_SITE_URL should start with https:// (found ${site})`);
 else if (site.endsWith("/")) add("WARN", "NEXT_PUBLIC_SITE_URL should not end with a slash");
-if (!env.RESEND_API_KEY) add("WARN", "RESEND_API_KEY not found here. The contact form cannot email you without it (ignore if you set it in Vercel)");
-if (!env.CONTACT_FROM_EMAIL) add("WARN", "CONTACT_FROM_EMAIL not set. Without a verified domain, visitors do not get the auto-reply (ignore if set in Vercel)");
+const emailJsSettings = [
+  "EMAILJS_SERVICE_ID",
+  "EMAILJS_TEMPLATE_ID",
+  "EMAILJS_PUBLIC_KEY",
+  "EMAILJS_PRIVATE_KEY",
+];
+const missingEmailJsSettings = emailJsSettings.filter((key) => !env[key]);
+if (missingEmailJsSettings.length) {
+  add("WARN", `EmailJS is not fully configured (${missingEmailJsSettings.join(", ")}). The contact form cannot email you until these are set here or in Vercel`);
+}
 if (!env.NEXT_PUBLIC_PLAUSIBLE_DOMAIN) add("INFO", "Analytics is off (NEXT_PUBLIC_PLAUSIBLE_DOMAIN not set)");
 if (!env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION) add("INFO", "No Google Search Console verification token set (not needed if you verify by DNS)");
 

@@ -32,9 +32,11 @@ git push -u origin main
 | Name | Value | Required |
 |---|---|---|
 | `NEXT_PUBLIC_SITE_URL` | `https://yourdomain.com` (no trailing slash) | Yes |
-| `RESEND_API_KEY` | key from resend.com | Yes (form emails) |
+| `EMAILJS_SERVICE_ID` | Service ID from EmailJS | Yes (form emails) |
+| `EMAILJS_TEMPLATE_ID` | Template ID from EmailJS | Yes (form emails) |
+| `EMAILJS_PUBLIC_KEY` | Public key from EmailJS | Yes (form emails) |
+| `EMAILJS_PRIVATE_KEY` | Private key from EmailJS | Yes, for strict API mode |
 | `CONTACT_TO_EMAIL` | where inquiries go (default: the email in `site.config.ts`) | Optional |
-| `CONTACT_FROM_EMAIL` | `StoreVolt <hello@yourdomain.com>` | Recommended |
 | `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` | `yourdomain.com` | Optional |
 | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | token from Search Console | Optional |
 
@@ -44,11 +46,19 @@ git push -u origin main
 
 Until the real domain is ready, set `NEXT_PUBLIC_SITE_URL` to the `.vercel.app` address so links and the sitemap are correct.
 
-## 3. Make the contact form send email (Resend)
-1. Create a free account at https://resend.com and create an **API key**. Paste it into Vercel as `RESEND_API_KEY`.
-2. **Without a verified domain**, Resend only delivers to the email you signed up with. Inquiries still reach you if you sign up with the same address as `CONTACT_TO_EMAIL`, but visitors will not get the auto-reply.
-3. **To email anyone:** in Resend go to **Domains > Add Domain**, add the DNS records it shows (SPF/DKIM) at your domain registrar, and wait until it says *Verified*. Then set `CONTACT_FROM_EMAIL` to an address on that domain.
-4. Redeploy, open the live site, send a test message, and check your inbox (and spam folder).
+## 3. Make the contact form send email (EmailJS)
+1. Create an account at https://www.emailjs.com/, add an email service, and create a template for contact inquiries.
+2. In **Account > Security**, enable **Allow API requests**; otherwise the contact form's server-side request will be rejected.
+3. Set the template fields to use these dynamic variables:
+   - **To Email:** `{{to_email}}`
+   - **Subject:** `{{subject}}`
+   - **Reply To:** `{{reply_to}}`
+   - **Content:** `{{{html_content}}}`
+4. In EmailJS, copy the service ID, template ID, public key, and private key into Vercel as `EMAILJS_SERVICE_ID`, `EMAILJS_TEMPLATE_ID`, `EMAILJS_PUBLIC_KEY`, and `EMAILJS_PRIVATE_KEY`. Set `CONTACT_TO_EMAIL` to the inbox that should receive inquiries, or leave it blank to use the email in `data/site.config.ts`.
+5. Set the same variables in `.env.local` for local testing. Keep real values out of `.env.example` and all client-side code. The private key must remain server-only.
+6. Redeploy, open the live site, send a test message, and check the configured inbox (and spam folder).
+
+The contact form sends inquiries to the owner; it does not send an automatic confirmation email to the visitor.
 
 ## 4. Connect your own domain
 1. Buy a domain if you do not have one (any registrar: Namecheap, Cloudflare, GoDaddy...).
@@ -102,9 +112,8 @@ Social preview caches: if a preview looks old, refresh it at https://www.linkedi
 | Problem | Fix |
 |---|---|
 | Social card or canonical link shows `localhost` | `NEXT_PUBLIC_SITE_URL` was missing at build time. Set it and **Redeploy**. |
-| Form says "temporarily unavailable" | `RESEND_API_KEY` is missing or wrong. Check **Vercel > Logs** for `[contact]` messages. |
-| Form works but you get no email | Check spam. Without a verified domain, `CONTACT_TO_EMAIL` must be the email you signed up to Resend with. |
-| Visitors report no auto-reply | Verify your domain in Resend and set `CONTACT_FROM_EMAIL`. |
+| Form says "temporarily unavailable" | One or more EmailJS settings are missing, including the private key required by strict API mode. Check **Vercel > Logs** for `[contact]` messages. |
+| Form works but you get no email | Check spam, the EmailJS service connection, template ID, and that the template's **To Email** is `{{to_email}}`. For rejected requests, check the server log's `[contact] EmailJS delivery failed` detail for the EmailJS error message. |
 | Project card shows a mockup instead of a screenshot | The live screenshot service was slow or blocked. Add your own screenshot in `public/images/` and set `image`. |
 | 3D hero not visible | The browser has WebGL disabled or "reduce motion" is on. A static neon bag is shown instead (by design). |
 | Build fails on Vercel about fonts | Rare network hiccup. Redeploy. |
