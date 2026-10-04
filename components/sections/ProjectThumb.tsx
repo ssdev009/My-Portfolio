@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { siteConfig } from "@/data/site.config";
 import type { Project } from "@/data/projects";
 import { domainOf } from "@/data/projects";
@@ -22,42 +22,42 @@ function screenshotUrl(url: string) {
  */
 export function ProjectThumb({ project, index }: { project: Project; index: number }) {
   const [failed, setFailed] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   const src =
     project.image ||
     (siteConfig.liveScreenshots && !project.noScreenshot ? screenshotUrl(project.url) : "");
+  const hasLocalImage = Boolean(project.image);
 
-  if (src && !failed) {
-    return (
-      <div className="relative aspect-[16/10] w-full overflow-hidden bg-surface2">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={src}
-          alt={`${project.name} website preview`}
-          loading="lazy"
-          decoding="async"
-          referrerPolicy="no-referrer"
-          onError={() => setFailed(true)}
-          className="h-full w-full object-cover object-top"
-        />
-      </div>
-    );
-  }
+  useEffect(() => {
+    setFailed(false);
+    setLoaded(false);
+  }, [src]);
+
+  const imageVisibility = hasLocalImage
+    ? loaded
+      ? "opacity-100"
+      : "opacity-0"
+    : `hidden sm:block ${loaded ? "opacity-100" : "opacity-0"}`;
 
   return (
     <div
-      className="relative aspect-[16/10] w-full overflow-hidden"
+      className="relative aspect-[4/3] w-full overflow-hidden bg-surface2 sm:aspect-[16/10]"
       style={{ background: gradients[index % gradients.length] }}
-      aria-hidden="true"
     >
-      <div className="absolute inset-3 flex flex-col overflow-hidden rounded-lg border border-line bg-bg/80 backdrop-blur-sm sm:inset-4">
-        <div className="flex items-center gap-1.5 border-b border-line px-3 py-2">
+      <div
+        className="absolute inset-2 flex flex-col overflow-hidden rounded-lg border border-line bg-bg/80 backdrop-blur-sm sm:inset-4"
+        aria-hidden="true"
+      >
+        <div className="flex min-w-0 items-center gap-1.5 border-b border-line px-2 py-2 sm:px-3">
           <span className="h-2 w-2 rounded-full bg-danger/80" />
           <span className="h-2 w-2 rounded-full bg-shopify/80" />
           <span className="h-2 w-2 rounded-full bg-success/80" />
-          <span className="ml-3 truncate font-mono text-[10px] text-muted">{domainOf(project.url)}</span>
+          <span className="ml-1 min-w-0 truncate font-mono text-[10px] text-muted sm:ml-2">
+            {domainOf(project.url)}
+          </span>
         </div>
-        <div className="flex flex-1 flex-col gap-2 p-3">
+        <div className="flex flex-1 flex-col gap-2 p-2 sm:p-3">
           <div className="h-3 w-1/2 rounded bg-cyan/60" />
           <div className="h-2 w-3/4 rounded bg-line" />
           <div className="mt-1 grid flex-1 grid-cols-3 gap-2">
@@ -67,9 +67,25 @@ export function ProjectThumb({ project, index }: { project: Project; index: numb
           </div>
         </div>
       </div>
-      <span className="absolute bottom-3 right-4 font-heading text-lg font-bold text-ink/90">
+      <span
+        className="absolute bottom-3 right-3 max-w-[calc(100%-1.5rem)] truncate font-heading text-sm font-bold text-ink/90 sm:right-4 sm:text-lg"
+        aria-hidden="true"
+      >
         {project.name}
       </span>
+      {src && !failed && (
+        /* eslint-disable-next-line @next/next/no-img-element */
+        <img
+          src={src}
+          alt={`${project.name} website preview`}
+          loading="lazy"
+          decoding="async"
+          referrerPolicy="no-referrer"
+          onLoad={() => setLoaded(true)}
+          onError={() => setFailed(true)}
+          className={`absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-300 ${imageVisibility}`}
+        />
+      )}
     </div>
   );
 }

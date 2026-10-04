@@ -2,7 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useEffect, useRef, useState } from "react";
-import { m, useScroll, useTransform } from "framer-motion";
+import { AnimatePresence, m, useScroll, useTransform } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -36,8 +36,20 @@ export function HeroSection() {
   const { ready, webgl, reducedMotion, coarse, tier } = useDeviceTier();
   const { theme } = useTheme();
   const [inView, setInView] = useState(true);
+  const [activeHeadline, setActiveHeadline] = useState(0);
   // Mount the heavy 3D scene only once the browser is idle, so text and buttons paint first
   const [idle, setIdle] = useState(false);
+
+  useEffect(() => {
+    const rotatingHeadlines = hero.rotatingHeadlines ?? [hero.headline];
+    if (rotatingHeadlines.length < 2) return;
+
+    const interval = window.setInterval(() => {
+      setActiveHeadline((current) => (current + 1) % rotatingHeadlines.length);
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [hero.headline, hero.rotatingHeadlines]);
 
   useEffect(() => {
     const start = () => setIdle(true);
@@ -72,8 +84,8 @@ export function HeroSection() {
 
   const mode = !ready ? "loading" : webgl && !reducedMotion ? (idle ? "3d" : "loading") : "static";
 
-  const words = hero.headline.split(" ");
-  const lead = words.slice(0, -HIGHLIGHT_WORDS).join(" ");
+  const words = (hero.rotatingHeadlines?.[activeHeadline] ?? hero.headline).split(" ");
+  const lead = words.slice(0, Math.max(0, words.length - HIGHLIGHT_WORDS)).join(" ");
   const highlight = words.slice(-HIGHLIGHT_WORDS).join(" ");
 
   return (
@@ -117,8 +129,19 @@ export function HeroSection() {
             variants={item}
             className="mt-6 !text-[clamp(2.25rem,5vw,4.25rem)]"
           >
-            {lead}{" "}
-            <span className="gradient-text text-glow-cyan">{highlight}</span>
+            <AnimatePresence mode="wait">
+              <m.span
+                key={hero.rotatingHeadlines?.[activeHeadline] ?? hero.headline}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -18 }}
+                transition={{ duration: 0.45, ease: "easeOut" }}
+                className="block"
+              >
+                {lead ? `${lead} ` : ""}
+                <span className="gradient-text text-glow-cyan">{highlight}</span>
+              </m.span>
+            </AnimatePresence>
           </m.h1>
 
           <m.p variants={item} className="mt-6 max-w-xl text-lg text-muted">

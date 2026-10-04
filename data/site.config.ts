@@ -54,6 +54,13 @@ export const siteConfig = {
   hero: {
     eyebrow: "SHOPIFY DEVELOPMENT STUDIO",
     headline: "We build Shopify stores that sell while you sleep.",
+    rotatingHeadlines: [
+      "We build Shopify stores that sell while you sleep.",
+      "We design premium storefronts that turn visitors into buyers.",
+      "We create Shopify experiences built for speed, trust, and growth.",
+      "We launch conversion-focused stores that work after hours.",
+      "We build bold Shopify brands that look amazing and perform better.",
+    ],
     subheadline:
       "5+ years building fast, conversion-focused Shopify, WordPress, and React websites for brands worldwide. Led by Muhammad Shahzad.",
     primaryCta: { label: "Book a Free Call", href: "#contact" },
