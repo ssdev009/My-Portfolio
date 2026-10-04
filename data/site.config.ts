@@ -71,8 +71,8 @@ export const siteConfig = {
   // Based on the real project list (16 live sites, 11 on Shopify)
   stats: [
     { value: 5, suffix: "+", label: "Years of experience" },
-    { value: 16, suffix: "+", label: "Live projects delivered" },
-    { value: 11, suffix: "+", label: "Shopify stores built" },
+    { value: 100, suffix: "+", label: "Live projects delivered" },
+    { value: 150, suffix: "+", label: "Shopify stores built" },
     { value: 3, suffix: "", label: "Platforms: Shopify, WordPress, React" },
   ],
 } as const;
