@@ -27,18 +27,13 @@ export function ProjectThumb({ project, index }: { project: Project; index: numb
   const src =
     project.image ||
     (siteConfig.liveScreenshots && !project.noScreenshot ? screenshotUrl(project.url) : "");
-  const hasLocalImage = Boolean(project.image);
 
   useEffect(() => {
     setFailed(false);
     setLoaded(false);
   }, [src]);
 
-  const imageVisibility = hasLocalImage
-    ? loaded
-      ? "opacity-100"
-      : "opacity-0"
-    : `hidden sm:block ${loaded ? "opacity-100" : "opacity-0"}`;
+  const imageVisibility = loaded ? "opacity-100" : "opacity-0";
 
   return (
     <div
