@@ -73,7 +73,14 @@ export async function POST(req: Request) {
   const owner = process.env.CONTACT_TO_EMAIL || siteConfig.email;
   try {
     const mail = buildOwnerEmail(data, labels);
-    await sendEmail({ to: owner, replyTo: data.email, subject: mail.subject, html: mail.html });
+    await sendEmail({
+      to: owner,
+      replyTo: data.email,
+      subject: mail.subject,
+      html: mail.html,
+      text: mail.text,
+      templateParams: mail.templateParams,
+    });
   } catch (err) {
     console.error("[contact] EmailJS delivery failed:", err);
     return fail("Could not send your message. Please try WhatsApp or email instead.", 502);

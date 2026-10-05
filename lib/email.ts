@@ -14,11 +14,13 @@ interface SendArgs {
   to: string;
   subject: string;
   html: string;
+  text: string;
+  templateParams: Record<string, string>;
   replyTo?: string;
 }
 
 /** Sends one email through the EmailJS REST API (no SDK needed). */
-export async function sendEmail({ to, subject, html, replyTo }: SendArgs) {
+export async function sendEmail({ to, subject, html, text, templateParams, replyTo }: SendArgs) {
   const serviceId = process.env.EMAILJS_SERVICE_ID;
   const templateId = process.env.EMAILJS_TEMPLATE_ID;
   const publicKey = process.env.EMAILJS_PUBLIC_KEY;
@@ -38,9 +40,13 @@ export async function sendEmail({ to, subject, html, replyTo }: SendArgs) {
       user_id: publicKey,
       accessToken: privateKey,
       template_params: {
+        ...templateParams,
         to_email: to,
         subject,
         html_content: html,
+        message_html: html,
+        message: text,
+        text_content: text,
         reply_to: replyTo ?? "",
       },
     }),
@@ -86,5 +92,37 @@ export function buildOwnerEmail(data: ContactFormValues, labels: Labels) {
     <p style="color:#888;font-size:12px;margin-top:32px">Sent from the ${escapeHtml(siteConfig.brandName)} website contact form. Reply to this email to respond directly.</p>
   </div>`;
 
-  return { subject: `New Shopify inquiry from ${data.name}`, html };
+  const text = [
+    `New Shopify inquiry from ${data.name}`,
+    ...rows.map(([key, value]) => `${key}: ${value}`),
+    "",
+    "Message:",
+    data.message,
+    "",
+    `Sent from the ${siteConfig.brandName} website contact form. Reply to this email to respond directly.`,
+  ].join("\n");
+
+  return {
+    subject: `New Shopify inquiry from ${data.name}`,
+    html,
+    text,
+    templateParams: {
+      name: data.name,
+      from_name: data.name,
+      from_email: data.email,
+      email: data.email,
+      contact_email: data.email,
+      time: new Intl.DateTimeFormat("en", {
+        dateStyle: "medium",
+        timeStyle: "short",
+        timeZone: siteConfig.timezone,
+      }).format(new Date()),
+      store_url: data.storeUrl || "—",
+      service: labels.serviceTitle,
+      service_title: labels.serviceTitle,
+      engagement: labels.engagementLabel,
+      budget: data.budget || "—",
+      client_message: data.message,
+    },
+  };
 }

@@ -44,13 +44,11 @@ export function ProjectThumb({ project, index }: { project: Project; index: numb
         className="absolute inset-2 flex flex-col overflow-hidden rounded-lg border border-line bg-bg/80 backdrop-blur-sm sm:inset-4"
         aria-hidden="true"
       >
-        <div className="flex min-w-0 items-center gap-1.5 border-b border-line px-2 py-2 sm:px-3">
+        <div className="flex items-center gap-1.5 border-b border-line px-3 py-2">
           <span className="h-2 w-2 rounded-full bg-danger/80" />
           <span className="h-2 w-2 rounded-full bg-shopify/80" />
           <span className="h-2 w-2 rounded-full bg-success/80" />
-          <span className="ml-1 min-w-0 truncate font-mono text-[10px] text-muted sm:ml-2">
-            {domainOf(project.url)}
-          </span>
+          <span className="ml-3 truncate font-mono text-[10px] text-muted">{domainOf(project.url)}</span>
         </div>
         <div className="flex flex-1 flex-col gap-2 p-2 sm:p-3">
           <div className="h-3 w-1/2 rounded bg-cyan/60" />
